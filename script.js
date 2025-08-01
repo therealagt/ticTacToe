@@ -1,3 +1,5 @@
+const TicTacToe = (function() {
+
 const Gameboard = {
     columns: 3,
     rows: 3,
@@ -18,6 +20,9 @@ const winCombo = [
 ];
 
 let currentPlayer;
+let gameOver = false; 
+let playerOneScore = 0;
+let playerTwoScore = 0;
 
 function gameStart() {
     Gameboard.board = [null, null, null, null, null, null, null, null, null];
@@ -38,17 +43,42 @@ function makeMove(pos, playerToken) {
 function checkMove() {
     for (let combo of winCombo) {
         const [a, b, c] = combo;
-        if (
-            Gameboard.board[a] !== null &&
+        if (Gameboard.board[a] !== null &&
             Gameboard.board[a] === Gameboard.board[b] &&
             Gameboard.board[a] === Gameboard.board[c]
         ) {
-            console.log(`We have a winner! ${Gameboard.board[a]} wins the game.`);
-            return true;
+            return Gameboard.board[a];
         }
     }
-    return false;
+    return null;
 }
 
-    
+function switchMove(pos) {
+    if (TicTacToe.move(pos, currentPlayer)) {
+        const winner = TicTacToe.check();
+        if (winner) {
+            endGame(winner);
+            return true 
+        } else {
+            currentPlayer = currentPlayer === playerOneToken ? playerTwoToken : playerOneToken;
+        }
+    } else {
+        alert("Invalid move!")
+    }
+    }
 
+function endGame(winner) {
+    gameOver = true;
+    if (winner === playerOneToken) playerOneScore++;
+    if (winner === playerTwoToken) playerTwoScore++;
+    console.log(`Game is over. Winner: ${winner}`);
+    console.log(`Scores - X: ${playerOneScore}, 0: ${playerTwoScore}`);
+}
+
+return {
+    start: gameStart,
+    move: makeMove,
+    check: checkMove,
+    switch: switchMove
+    };
+})();
