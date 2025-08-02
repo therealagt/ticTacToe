@@ -27,7 +27,9 @@ let playerTwoScore = 0;
 function gameStart() {
     Gameboard.board = [null, null, null, null, null, null, null, null, null];
     currentPlayer = Math.random() < 0.5 ? playerOne : playerTwo;
-    console.log(`Game started! ${currentPlayer} goes first.`);
+    gameOver = false;
+    console.log(`Game started! ${currentPlayer.name} (${currentPlayer.token}) goes first.`);
+    displayGameBoard();
 }
 
 function makeMove(pos, token) {
@@ -50,6 +52,10 @@ function checkMove() {
             return Gameboard.board[a];
         }
     }
+    if (Gameboard.board.every(cell => cell !== null)) {
+        return "tie";
+    }
+
     return null;
 }
 
@@ -58,13 +64,13 @@ function switchMove(pos) {
         alert("Game is over! Start a new game.")
         return;
     }
-    if (TicTacToe.move(pos, currentPlayer)) {
-        const winner = TicTacToe.check();
+    if (makeMove(pos, currentPlayer.token)) {
+        const winner = checkMove();
         if (winner) {
             endGame(winner);
             return true 
         } else {
-            currentPlayer = currentPlayer === playerOneToken ? playerTwoToken : playerOneToken;
+            currentPlayer = currentPlayer === playerOne ? playerTwo : playerOne;
         }
     } else {
         alert("Invalid move!")
