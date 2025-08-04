@@ -1,9 +1,7 @@
 const TicTacToe = (function() {
 
 const Gameboard = {
-    columns: 3,
-    rows: 3,
-    board: [null, null, null, null, null, null, null, null, null],
+    board: Array(9).fill(null),
 }
 
 const playerOne = { token: "X", score: 0, name: "Player 1" };
@@ -21,14 +19,15 @@ const winCombo = [
 
 let currentPlayer;
 let gameOver = false; 
-let playerOneScore = 0;
-let playerTwoScore = 0;
 
 function gameStart() {
     Gameboard.board = [null, null, null, null, null, null, null, null, null];
     currentPlayer = Math.random() < 0.5 ? playerOne : playerTwo;
     gameOver = false;
-    console.log(`Game started! ${currentPlayer.name} (${currentPlayer.token}) goes first.`);
+    updateDisplay();
+    updateScoreDisplay();
+
+    alert(`Game started! ${currentPlayer.name} (${currentPlayer.token}) goes first.`);
     displayGameBoard();
 }
 
@@ -37,7 +36,6 @@ function makeMove(pos, token) {
         Gameboard.board[pos] = token;
         return true;
     } else {
-        alert("Choose a different spot");
         return false;
     }
 }
@@ -59,12 +57,20 @@ function checkMove() {
     return null;
 }
 
+function updateDisplay() {
+    for (let i = 0; i < 9; i++) {
+        const cell = document.querySelector(`[data-index="${i}"]`);
+        if (cell) {
+            cell.textContent = Gameboard.board[i] || '';
+        }
+    }
+}
 function switchMove(pos) {
     if (gameOver) {
-        alert("Game is over! Start a new game.")
         return;
     }
     if (makeMove(pos, currentPlayer.token)) {
+        updateDisplay();
         const winner = checkMove();
         if (winner) {
             endGame(winner);
@@ -73,16 +79,35 @@ function switchMove(pos) {
             currentPlayer = currentPlayer === playerOne ? playerTwo : playerOne;
         }
     } else {
-        alert("Invalid move!")
     }
     }
 
 function endGame(winner) {
     gameOver = true;
-    if (winner === playerOne.token) playerOneScore++;
-    if (winner === playerTwo.token) playerTwoScore++;
+    if (winner === playerOne.token) playerOne.score++;
+    if (winner === playerTwo.token) playerTwo.score++;
+
+    updateScoreDisplay();
+
     console.log(`Game is over. Winner: ${winner}`);
-    console.log(`Scores - X: ${playerOneScore}, 0: ${playerTwoScore}`);
+    console.log(`Scores - X: ${playerOne.score}, 0: ${playerTwo.score}`);
+
+    if (winner === "tie") {
+        alert("It's a tie!");
+    } else {
+        alert(`${winner} wins!`);
+    }
+}
+
+function updateScoreDisplay() {
+    const playerOneScoreElement = document.querySelector('#player-one-score');
+    const playerTwoScoreElement = document.querySelector('#player-two-score');
+    const playerOneLabel = document.querySelector('#player-one-label');
+    const playerTwoLabel = document.querySelector('#player-two-label');
+    if (playerOneLabel) playerOneLabel.textContent = playerOne.name;
+    if (playerTwoLabel) playerTwoLabel.textContent = playerTwo.name;
+    if (playerOneScoreElement) playerOneScoreElement.textContent = playerOne.score;
+    if (playerTwoScoreElement) playerTwoScoreElement.textContent = playerTwo.score;
 }
 function displayGameBoard() {
     for (let i = 0; i < 9; i += 3) {
@@ -94,11 +119,56 @@ function displayGameBoard() {
     }
 }
 
+function makeNamesEditable() {
+    document.querySelectorAll('.editable-name').forEach(label => {
+        label.addEventListener('click', function handler() {
+            const currentName = this.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'editable-name-input';
+            input.value = currentName;
+            input.size = Math.max(currentName.length, 6);
+            this.replaceWith(input);
+            input.focus();
+
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') input.blur();
+            });
+
+            function finishEdit() {
+                const newName = input.value.trim() || currentName;
+                const span = document.createElement('span');
+                span.className = 'editable-name';
+                span.textContent = newName;
+                input.replaceWith(span);
+
+                if (label.id === 'player-one-label') {
+                    playerOne.name = newName;
+                } else {
+                    playerTwo.name = newName;
+                }
+                updateScoreDisplay();
+                span.addEventListener('click', handler);
+            }
+        });
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', makeNamesEditable);
+} else {
+    makeNamesEditable();
+}
+
 return {
     start: gameStart,
     move: makeMove,
     check: checkMove,
     switch: switchMove,
-    display: displayGameBoard
-    };
+    display: displayGameBoard,
+    updateScores: updateScoreDisplay,
+    playerOne,
+    playerTwo
+};
 })();
